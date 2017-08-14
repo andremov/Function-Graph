@@ -10,8 +10,8 @@ package graph;
  * @author Andres
  */
 public class Token {
-	
-	String tokenValue;
+
+	private String tokenValue;
 
 	public Token(String value) {
 		this.tokenValue = value;
@@ -19,68 +19,75 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return tokenValue;
+		return getTokenValue();
 	}
-	
+
 	public boolean isHigher(Token comparison) {
 		return operatorValue() >= comparison.operatorValue();
 	}
-	
+
 	public boolean isOperator() {
 		return operatorValue()!=0 && operatorValue()!=2;
 	}
-	
+
 	public boolean isParentheses() {
 		return operatorValue() == 2;
 	}
-	
+
 	public boolean isOpenParentheses() {
-		return tokenValue.equals("(");
+		return getTokenValue().equals("(");
 	}
-	
+
 	public boolean isClosedParentheses() {
 		return !isOpenParentheses();
 	}
-	
+
 	public boolean isNumber() {
 		boolean isNumber = false;
-		
+
 		try {
-			Double.parseDouble(tokenValue);
+			Double.parseDouble(getTokenValue());
 			isNumber = true;
 		} catch (Exception e) { }
-		
+
 		return isNumber;
 	}
-	
+
 	public boolean isVariable() {
-		return tokenValue.equals("x");
+		return getTokenValue().equals("x");
 	}
-	
+
 	public boolean isAdvancedOperator() {
-		return (tokenValue.equals("cos") || tokenValue.equals("sin") || tokenValue.equals("abs") || tokenValue.equals("tan"));
+		return (getTokenValue().equals("cos") || getTokenValue().equals("sin") || getTokenValue().equals("abs") || getTokenValue().equals("tan"));
 	}
-	
+
 	public int operatorValue() {
 		int value = 0;
-		
-		if (tokenValue.equals("(") || tokenValue.equals(")")) {
+
+		if (getTokenValue().equals("(") || getTokenValue().equals(")")) {
 			value = 1;
 		}
-		
-		if (tokenValue.equals("^") || tokenValue.equals("pow")) {
+
+		if (getTokenValue().equals("^") || getTokenValue().equals("pow")) {
 			value = 2;
 		}
-		
-		if (tokenValue.equals("*") || tokenValue.equals("/")) {
+
+		if (getTokenValue().equals("*") || getTokenValue().equals("/")) {
 			value = 3;
 		}
-		
-		if (tokenValue.equals("+") || tokenValue.equals("-")) {
+
+		if (getTokenValue().equals("+") || getTokenValue().equals("-")) {
 			value = 4;
 		}
-		
+
 		return value;
 	}
-	
+
+	/**
+	 * @return the tokenValue
+	 */
+	public String getTokenValue() {
+		return tokenValue;
+	}
+
 }

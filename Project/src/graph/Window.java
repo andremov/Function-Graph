@@ -33,11 +33,11 @@ public class Window extends JFrame {
 		JTextField inputField = new JTextField();
 		inputField.setSize(Handler.SCREEN_SIZE+1, Handler.WINDOW_Y);
 		inputField.setLocation(1, Handler.SCREEN_SIZE+2);
-		inputField.setFont(new Font("Arial",Font.BOLD,60));
+		inputField.setFont(new Font("Arial",Font.BOLD,55));
 		inputField.addCaretListener(new CaretListener() {
 			@Override
 			public void caretUpdate(CaretEvent e) {
-				Handler.interpret(inputField.getText());
+				Handler.graph(inputField.getText());
 			}
 		});
 		add(inputField);

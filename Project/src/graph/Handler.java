@@ -16,14 +16,15 @@ import java.util.ArrayList;
  */
 public class Handler {
 	
-	public static int SCREEN_SIZE = 700;
+	public static int SCREEN_SIZE = 600;
 	public static int EXTRA_X = 8;
 	public static int EXTRA_Y = 31;
-	public static int WINDOW_Y = 100;
+	public static int WINDOW_Y = 60;
 	private static String[] operations = { "*", "/", "+", "-" };
-	
+	private static ArrayList<Point> points;
 	public static void init() {
 		new Window();
+		points = new ArrayList<>();
 //		shuntingYard("3 + 4 * 2 / ( 1 − 5 ) ^ 2 ^ 3");
 	}
 	
@@ -41,9 +42,7 @@ public class Handler {
 	public static void graph(String text) {
 		try {
 			solve(shuntingYard(interpret(text)));
-		} catch(Exception e) {
-			
-		}
+		} catch(Exception e) { }
 	}
 	
 	public static ArrayList<Token> interpret(String eq) throws Exception {
@@ -96,11 +95,11 @@ public class Handler {
 						}
 					}
 				}
-				
+				System.out.println(tokens.size()+1 + ": "+token.getTokenValue() + " ...");
 				if (tokens.size()>0) {
 					Token lastToken = tokens.get(tokens.size()-1);
 					if (token.isVariable() || token.isNumber()) {
-						if (!lastToken.isOperator()&&!lastToken.isParentheses()) {
+						if (!lastToken.isOperator()&&!lastToken.isParentheses()&&!lastToken.isAdvancedOperator()) {
 							tokens.add(new Token("*"));
 						} else if (lastToken.isParentheses()) {
 							if (lastToken.isClosedParentheses()) {
@@ -114,6 +113,8 @@ public class Handler {
 						} else {
 							tokens.add(token);
 						}
+					} else if (token.isAdvancedOperator()) {
+						tokens.add(token);
 					} else if (token.isParentheses()) {
 						if (!lastToken.isOperator()){
 							tokens.add(new Token("*"));
@@ -127,8 +128,14 @@ public class Handler {
 						tokens.add(token);
 					} else if (token.isOperator()) {
 						throw new Exception("Operation factors missing.");
-					} else if (token.isParentheses()) {
+					} else if (token.isAdvancedOperator()) {
 						tokens.add(token);
+					} else if (token.isParentheses()) {
+						if (token.isOpenParentheses()) {
+							tokens.add(token);
+						} else {
+							throw new Exception("Operation factors missing.");
+						}
 					} else {
 						throw new Exception("Unreported token: "+token);
 					}
@@ -178,60 +185,95 @@ public class Handler {
 //		exit.
 		ArrayList<Token> outputQueue = new ArrayList<>();
 		ArrayList<Token> operatorStack = new ArrayList<>();
-		
-//			if (token.equals("x") || operatorValue(token) != 0 || isNumber) {
-//				
-//				tokens.add(token);
+		for (int i = 0; i < eq.size(); i++) {
+			Token token = eq.get(i);
+//			if (token.isVariable() || token.isNumber()) {
+//				outputQueue.add(token);
 //			} else {
 //				System.out.println("unknown token: "+token);
 //			}
 
-//			if (isNumber) {
-//				outputQueue.add(token);
-//			} else {
-//				System.out.println(token+ " in");
-//				if (token.equals("x")) {
-//					outputQueue.add(token);
-//				} else if (token.equals(" ")) {
-//				} else if (token.equals("(")) {
-//					operatorStack.add(token);
-//				} else if (token.equals(")")) {
-//					String lastOperator = operatorStack.get(operatorStack.size()-1);
-//					while(!lastOperator.equals("(")) {
-//						System.out.println("last "+lastOperator);
-//						outputQueue.add(lastOperator);
-//						operatorStack.remove(operatorStack.size()-1);
-//						lastOperator = operatorStack.get(operatorStack.size()-1);
-//					}
-//					operatorStack.remove(operatorStack.size()-1);
-//				} else {
-//					if (operatorStack.size()>0) {
-//						String lastOperator = operatorStack.get(operatorStack.size()-1);
-//						while(isHigher(lastOperator,token) && operatorStack.size()>1) {
-//							System.out.println("popping "+lastOperator);
-//							System.out.println(operatorValue(lastOperator)+" ? "+operatorValue(token));
-//							outputQueue.add(lastOperator);
-//							operatorStack.remove(operatorStack.size()-1);
-//							lastOperator = operatorStack.get(operatorStack.size()-1);
-//						}
-//					}
-//					operatorStack.add(token);
-//				}
-//			}
-//		while (operatorStack.size()>0) {
-//			String lastOperator = operatorStack.get(operatorStack.size()-1);
-//			outputQueue.add(lastOperator);
-//			operatorStack.remove(operatorStack.size()-1);
-//		}
-//		for (int i = 0; i < outputQueue.size(); i++) {
-//			System.out.print(outputQueue.get(i)+" ");
-//		}
-//		System.out.println("");
+			if (token.isNumber()) {
+				outputQueue.add(token);
+			} else {
+				System.out.println(token+ " in");
+				if (token.equals("x")) {
+					outputQueue.add(token);
+				} else if (token.equals(" ")) {
+				} else if (token.equals("(")) {
+					operatorStack.add(token);
+				} else if (token.equals(")")) {
+					Token lastOperator = operatorStack.get(operatorStack.size()-1);
+					while(!lastOperator.equals("(")) {
+						outputQueue.add(lastOperator);
+						operatorStack.remove(operatorStack.size()-1);
+						lastOperator = operatorStack.get(operatorStack.size()-1);
+					}
+					operatorStack.remove(operatorStack.size()-1);
+				} else {
+					if (operatorStack.size()>0) {
+						Token lastOperator = operatorStack.get(operatorStack.size()-1);
+						while(lastOperator.isHigher(token) && operatorStack.size()>1) {
+							System.out.println("popping "+lastOperator);
+							System.out.println(lastOperator.operatorValue()+" ? "+token.operatorValue());
+							outputQueue.add(lastOperator);
+							operatorStack.remove(operatorStack.size()-1);
+							lastOperator = operatorStack.get(operatorStack.size()-1);
+						}
+					}
+					operatorStack.add(token);
+				}
+			}
+		}
+		while (operatorStack.size()>0) {
+			Token lastOperator = operatorStack.get(operatorStack.size()-1);
+			outputQueue.add(lastOperator);
+			operatorStack.remove(operatorStack.size()-1);
+		}
+		
 		return outputQueue;
 	}
 	
 	public static void solve(ArrayList<Token> eq) {
 		
+		int x = 2;
+		int j = 0;
+		double n1 = 0;
+		double n2 = 0;
+		boolean nExists = false;
+		while (j<eq.size()) {
+			Token t = eq.get(j);
+			int i = j-1;
+			if (t.isNumber() || t.isVariable()) {
+				n2 = Double.parseDouble(eq.get(i).getTokenValue());
+				n1 = n2;
+			} else if (t.isOperator()) {
+				
+//				APPLY OPERATOR
+				if (t.getTokenValue().equals("*")) {
+					n2 = n1*n2;
+				} else if (t.getTokenValue().equals("/")) {
+					n2 = n1/n2;
+				} else if (t.getTokenValue().equals("+")) {
+					n2 = n1*n2;
+				} else if (t.getTokenValue().equals("-")) {
+					n2 = n1-n2;
+				}
+			}
+
+			j++;
+		}
+		System.out.println(n2);
+//		for (int x = 0; x < 100; x++) {
+//			float y;
+//			for (int j = 0; j < eq.size(); j++) {
+//				Token t = eq.get(j);
+//				if (t.isVariable()) {
+//					
+//				}
+//			}
+//			points.add(new Point(x,y));
+//		}
 	}
 	
 	public static BufferedImage getGraph() {

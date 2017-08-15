@@ -53,6 +53,10 @@ public class Handler {
 			int charNumber = 0;
 			while (charNumber < eq.length()) {
 				String tokenValue = ""+eq.charAt(charNumber);
+				while (tokenValue.equals(" ")) {
+					charNumber++;
+					tokenValue = ""+eq.charAt(charNumber);
+				}
 				Token token;
 				try {
 	//				GET ALL DIGITS OF NUMBER
@@ -95,7 +99,7 @@ public class Handler {
 						}
 					}
 				}
-				System.out.println(tokens.size()+1 + ": "+token.getTokenValue() + " ...");
+//				System.out.println(tokens.size()+1 + ": "+token.getTokenValue() + " ...");
 				if (tokens.size()>0) {
 					Token lastToken = tokens.get(tokens.size()-1);
 					if (token.isVariable() || token.isNumber()) {
@@ -143,7 +147,7 @@ public class Handler {
 
 				charNumber++;
 			}
-			System.out.print("Interpreted as: ");
+//			System.out.print("Interpreted as: ");
 			for (int i = 0; i < tokens.size(); i++) {
 				if (i != 0) {
 					System.out.print("_");
@@ -196,7 +200,7 @@ public class Handler {
 			if (token.isNumber()) {
 				outputQueue.add(token);
 			} else {
-				System.out.println(token+ " in");
+//				System.out.println(token+ " in");
 				if (token.equals("x")) {
 					outputQueue.add(token);
 				} else if (token.equals(" ")) {
@@ -214,8 +218,8 @@ public class Handler {
 					if (operatorStack.size()>0) {
 						Token lastOperator = operatorStack.get(operatorStack.size()-1);
 						while(lastOperator.isHigher(token) && operatorStack.size()>1) {
-							System.out.println("popping "+lastOperator);
-							System.out.println(lastOperator.operatorValue()+" ? "+token.operatorValue());
+//							System.out.println("popping "+lastOperator);
+//							System.out.println(lastOperator.operatorValue()+" ? "+token.operatorValue());
 							outputQueue.add(lastOperator);
 							operatorStack.remove(operatorStack.size()-1);
 							lastOperator = operatorStack.get(operatorStack.size()-1);
@@ -240,15 +244,19 @@ public class Handler {
 		int j = 0;
 		double n1 = 0;
 		double n2 = 0;
-		boolean nExists = false;
 		while (j<eq.size()) {
 			Token t = eq.get(j);
 			int i = j-1;
-			if (t.isNumber() || t.isVariable()) {
+			if (t.isNumber()) {
 				n2 = Double.parseDouble(eq.get(i).getTokenValue());
-				n1 = n2;
+				System.out.println("Setting factor 2: "+n2);
+//				n1 = n2;
+			} else if (t.isVariable()) {
+				System.out.println("Setting factor 2 as X");
+				n2 = x;
 			} else if (t.isOperator()) {
-				
+				System.out.println("Found an operator!");
+				n1 = Double.parseDouble(eq.get(i-2).getTokenValue());
 //				APPLY OPERATOR
 				if (t.getTokenValue().equals("*")) {
 					n2 = n1*n2;
@@ -263,7 +271,7 @@ public class Handler {
 
 			j++;
 		}
-		System.out.println(n2);
+		System.out.println("R./ "+n2);
 //		for (int x = 0; x < 100; x++) {
 //			float y;
 //			for (int j = 0; j < eq.size(); j++) {

@@ -20,8 +20,12 @@ public class Handler {
 	public static int EXTRA_X = 8;
 	public static int EXTRA_Y = 31;
 	public static int WINDOW_Y = 60;
-	private static String[] operations = { "*", "/", "+", "-" };
+	
+	public static float PRECISION = 1f;
+	
 	private static ArrayList<Point> points;
+	
+	
 	public static void init() {
 		new Window();
 		points = new ArrayList<>();
@@ -41,126 +45,116 @@ public class Handler {
 	
 	public static void graph(String text) {
 		try {
-			solve(shuntingYard(interpret(text)));
-		} catch(Exception e) { }
+			System.out.println("Raw function: "+text);
+			ArrayList<Token> tokens = convertEquation(text);
+			System.out.println("Converted function: "+printList(tokens));
+			tokens = redact(tokens);
+			System.out.println("Redacted function: "+printList(tokens));
+			tokens = shuntingYard(tokens);
+			System.out.println("Ordered function: "+printList(tokens));
+		} catch(Exception e) {
+			System.out.println("Exception: "+e.getMessage());
+//			System.out.println("Aiuda");
+		}
 	}
 	
-	public static ArrayList<Token> interpret(String eq) throws Exception {
-		ArrayList<Token> tokens;
-		try {
-			tokens = new ArrayList<>();
+	public static String printList(ArrayList<Token> list) {
+		String a = "";
+		for (int i = 0; i < list.size(); i++) {
+			a = a + list.get(i) + " ";
+		}
+		return a;
+	}
+	
+	public static ArrayList<Token> convertEquation(String eq) {
+		ArrayList<Token> tokens = new ArrayList<>();
+		int charNumber = 0;
+		while (charNumber < eq.length()) {
+			String tokenValue = ""+eq.charAt(charNumber);
+			if (!tokenValue.equals(" ")) {
+				Token token = null;
 
-			int charNumber = 0;
-			while (charNumber < eq.length()) {
-				String tokenValue = ""+eq.charAt(charNumber);
-				while (tokenValue.equals(" ")) {
-					charNumber++;
-					tokenValue = ""+eq.charAt(charNumber);
-				}
-				Token token;
-				try {
-	//				GET ALL DIGITS OF NUMBER
-					if (tokenValue.equals(".")) {
-						tokenValue = "0.";
-					}
-					Double.parseDouble(tokenValue);
-					while(true) {
-						Double.parseDouble(tokenValue+eq.charAt(charNumber+1));
-						charNumber++;
-						tokenValue = tokenValue+eq.charAt(charNumber);
-					}
-				} catch (Exception e1) {
+				if (token == null) {
+					// IS IT A NUMBER?
 					try {
-	//					CREATE NUMBER TOKEN
+						if (tokenValue.equals(".")) {
+							tokenValue = "0.";
+						}
 						Double.parseDouble(tokenValue);
 						token = new Token(tokenValue);
-					} catch (Exception e2) {
-	//					CHECK LITERAL ARGUMENT
-						String normalOperators = "x*/+-^";
-						if (normalOperators.contains(tokenValue)) {
+						while(true) {
+							Double.parseDouble(tokenValue+eq.charAt(charNumber+1));
+							charNumber++;
+							tokenValue = tokenValue+eq.charAt(charNumber);
 							token = new Token(tokenValue);
-						} else {
-							String threeLong = ""+eq.charAt(charNumber)+eq.charAt(charNumber+1)+eq.charAt(charNumber+2);
-							if (threeLong.equals("cos")){
-								charNumber+=2;
-								token = new Token(threeLong);
-							} else if (threeLong.equals("tan")) {
-								charNumber+=2;
-								token = new Token(threeLong);
-							} else if (threeLong.equals("sin")) {
-								charNumber+=2;
-								token = new Token(threeLong);
-							} else if (threeLong.equals("abs")) {
-								charNumber+=2;
-								token = new Token(threeLong);
-							} else {
-								throw new Exception("Couldn't interpret '"+threeLong+"' or '"+tokenValue+"'");
-							}
 						}
-					}
+					} catch (Exception e) { }
 				}
-//				System.out.println(tokens.size()+1 + ": "+token.getTokenValue() + " ...");
-				if (tokens.size()>0) {
-					Token lastToken = tokens.get(tokens.size()-1);
-					if (token.isVariable() || token.isNumber()) {
-						if (!lastToken.isOperator()&&!lastToken.isParentheses()&&!lastToken.isAdvancedOperator()) {
-							tokens.add(new Token("*"));
-						} else if (lastToken.isParentheses()) {
-							if (lastToken.isClosedParentheses()) {
-								tokens.add(new Token("*"));
-							}
-						}
-						tokens.add(token);
-					} else if (token.isOperator()) {
-						if (lastToken.isOperator()) {
-							throw new Exception("Duplicate operators.");
-						} else {
-							tokens.add(token);
-						}
-					} else if (token.isAdvancedOperator()) {
-						tokens.add(token);
-					} else if (token.isParentheses()) {
-						if (!lastToken.isOperator()){
-							tokens.add(new Token("*"));
-						}
-						tokens.add(token);
-					} else {
-						throw new Exception("Unreported token: "+token);
-					}
-				} else {
-					if (token.isVariable() || token.isNumber()) {
-						tokens.add(token);
-					} else if (token.isOperator()) {
-						throw new Exception("Operation factors missing.");
-					} else if (token.isAdvancedOperator()) {
-						tokens.add(token);
-					} else if (token.isParentheses()) {
-						if (token.isOpenParentheses()) {
-							tokens.add(token);
-						} else {
-							throw new Exception("Operation factors missing.");
-						}
-					} else {
-						throw new Exception("Unreported token: "+token);
+
+				if (token == null) {
+					// IS OPERATOR?
+					if ("x*/+-^()".contains(tokenValue)) {
+						token = new Token(tokenValue);
 					}
 				}
 
-				charNumber++;
-			}
-//			System.out.print("Interpreted as: ");
-			for (int i = 0; i < tokens.size(); i++) {
-				if (i != 0) {
-					System.out.print("_");
+				if (token == null && eq.length() > charNumber+2) {
+					// IS ADVANCED OPERATOR?
+					String threeLong = tokenValue+eq.charAt(charNumber+1)+eq.charAt(charNumber+2);
+					if (threeLong.equals("cos") || threeLong.equals("tan") || 
+						threeLong.equals("sin") || threeLong.equals("abs")) {
+						charNumber+=2;
+						token = new Token(threeLong);
+					}
 				}
-				System.out.print(tokens.get(i));
-				
+
+				if (token != null) {
+					tokens.add(token);
+				}
 			}
-			System.out.println("");
-		} catch (Exception e) {
-			System.out.println("Interpreting error: "+e.getMessage());
-			throw e;
+			charNumber++;
 		}
 		return tokens;
+	}
+			
+	public static ArrayList<Token> redact(ArrayList<Token> in) throws Exception {
+		ArrayList<Token> out = new ArrayList<>();
+
+		if (in.get(0).isOperator()) {
+			throw new Exception("Wrongful operator.");
+		} else {
+			out.add(in.get(0));
+		}
+
+		for (int i = 1; i < in.size(); i++) {
+			if (in.get(i).isVariable() || in.get(i).isNumber()) {
+				if (in.get(i-1).isVariable() || in.get(i-1).isNumber()) {
+					out.add(new Token("*"));
+				}
+				out.add(in.get(i));
+			}
+			
+			if (in.get(i).isOpenParentheses()) {
+				if (in.get(i-1).isClosedParentheses() || in.get(i-1).isVariable() || in.get(i-1).isNumber()) {
+					out.add(new Token("*"));
+				}
+				out.add(in.get(i));
+			}
+			
+			if (in.get(i).isClosedParentheses()) {
+				out.add(in.get(i));
+			}
+			
+			if (in.get(i).isOperator()) {
+				if (in.get(i-1).isOperator()) {
+					throw new Exception("Duplicate operators.");
+				} else {
+					out.add(in.get(i));
+				}
+			}
+		}
+			
+		return out;
 	}
 	
 	public static ArrayList<Token> shuntingYard(ArrayList<Token> eq) {
@@ -187,39 +181,30 @@ public class Handler {
 //				there are mismatched parentheses. */
 //				pop the operator onto the output queue.
 //		exit.
+
 		ArrayList<Token> outputQueue = new ArrayList<>();
 		ArrayList<Token> operatorStack = new ArrayList<>();
+		
 		for (int i = 0; i < eq.size(); i++) {
 			Token token = eq.get(i);
-//			if (token.isVariable() || token.isNumber()) {
-//				outputQueue.add(token);
-//			} else {
-//				System.out.println("unknown token: "+token);
-//			}
 
-			if (token.isNumber()) {
+			if (token.isNumber() || token.isVariable()) {
 				outputQueue.add(token);
 			} else {
-//				System.out.println(token+ " in");
-				if (token.equals("x")) {
-					outputQueue.add(token);
-				} else if (token.equals(" ")) {
-				} else if (token.equals("(")) {
+				if (token.isOpenParentheses()) {
 					operatorStack.add(token);
-				} else if (token.equals(")")) {
+				} else if (token.isClosedParentheses()) {
 					Token lastOperator = operatorStack.get(operatorStack.size()-1);
-					while(!lastOperator.equals("(")) {
+					while(!lastOperator.isOpenParentheses()) {
 						outputQueue.add(lastOperator);
 						operatorStack.remove(operatorStack.size()-1);
 						lastOperator = operatorStack.get(operatorStack.size()-1);
 					}
 					operatorStack.remove(operatorStack.size()-1);
-				} else {
+				} else if (token.isOperator()) {
 					if (operatorStack.size()>0) {
 						Token lastOperator = operatorStack.get(operatorStack.size()-1);
 						while(lastOperator.isHigher(token) && operatorStack.size()>1) {
-//							System.out.println("popping "+lastOperator);
-//							System.out.println(lastOperator.operatorValue()+" ? "+token.operatorValue());
 							outputQueue.add(lastOperator);
 							operatorStack.remove(operatorStack.size()-1);
 							lastOperator = operatorStack.get(operatorStack.size()-1);
@@ -229,9 +214,11 @@ public class Handler {
 				}
 			}
 		}
+		
 		while (operatorStack.size()>0) {
 			Token lastOperator = operatorStack.get(operatorStack.size()-1);
 			outputQueue.add(lastOperator);
+//			System.out.println("popping "+lastOperator);
 			operatorStack.remove(operatorStack.size()-1);
 		}
 		
@@ -240,48 +227,43 @@ public class Handler {
 	
 	public static void solve(ArrayList<Token> eq) {
 		
-		int x = 2;
-		int j = 0;
-		double n1 = 0;
-		double n2 = 0;
-		while (j<eq.size()) {
-			Token t = eq.get(j);
-			int i = j-1;
-			if (t.isNumber()) {
-				n2 = Double.parseDouble(eq.get(i).getTokenValue());
-				System.out.println("Setting factor 2: "+n2);
-//				n1 = n2;
-			} else if (t.isVariable()) {
-				System.out.println("Setting factor 2 as X");
-				n2 = x;
-			} else if (t.isOperator()) {
-				System.out.println("Found an operator!");
-				n1 = Double.parseDouble(eq.get(i-2).getTokenValue());
-//				APPLY OPERATOR
-				if (t.getTokenValue().equals("*")) {
-					n2 = n1*n2;
-				} else if (t.getTokenValue().equals("/")) {
-					n2 = n1/n2;
-				} else if (t.getTokenValue().equals("+")) {
-					n2 = n1*n2;
-				} else if (t.getTokenValue().equals("-")) {
-					n2 = n1-n2;
+		points.clear();
+		for (int rawX = 0; rawX < SCREEN_SIZE*PRECISION; rawX++) {
+			double x = (rawX-(SCREEN_SIZE*0.5f*PRECISION))/PRECISION;
+			
+			int j = 0;
+			double n1 = 0;
+			double n2 = 0;
+			
+			while (j<eq.size()) {
+				Token t = eq.get(j);
+				if (t.isNumber() || t.isVariable()) {
+//					System.out.println("Setting factor 2: ");
+					try {
+						n2 = eq.get(j).getNumericalValue(x);
+					} catch (Exception e) { }
+				} else if (t.isOperator()) {
+//					System.out.println("Found an operator!");
+					try {
+						n1 = eq.get(j-2).getNumericalValue(x);
+					} catch (Exception e) { }
+					
+	//				APPLY OPERATOR
+					if (t.getTokenValue().equals("*")) {
+						n2 = n1*n2;
+					} else if (t.getTokenValue().equals("/")) {
+						n2 = n1/n2;
+					} else if (t.getTokenValue().equals("+")) {
+						n2 = n1+n2;
+					} else if (t.getTokenValue().equals("-")) {
+						n2 = n1-n2;
+					}
 				}
-			}
 
-			j++;
+				j++;
+			}
+			points.add(new Point(x+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-n2));
 		}
-		System.out.println("R./ "+n2);
-//		for (int x = 0; x < 100; x++) {
-//			float y;
-//			for (int j = 0; j < eq.size(); j++) {
-//				Token t = eq.get(j);
-//				if (t.isVariable()) {
-//					
-//				}
-//			}
-//			points.add(new Point(x,y));
-//		}
 	}
 	
 	public static BufferedImage getGraph() {
@@ -301,6 +283,10 @@ public class Handler {
 		g.drawLine(0, 0, 0, size);
 		g.drawLine(size-1, 0, size-1, size-1);
 		g.drawLine(0, size-1, size-1, size-1);
+		
+		for (int i = 0; i < points.size(); i++) {
+			g.drawImage(points.get(i).getImage(), (int)points.get(i).getX(), (int)points.get(i).getY(), null);
+		}
 		
 		return graph;
 	}

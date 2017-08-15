@@ -27,7 +27,7 @@ public class Token {
 	}
 
 	public boolean isOperator() {
-		return operatorValue()!=0 && operatorValue()!=2;
+		return "x*/+-^()".contains(tokenValue);
 	}
 
 	public boolean isParentheses() {
@@ -39,7 +39,7 @@ public class Token {
 	}
 
 	public boolean isClosedParentheses() {
-		return !isOpenParentheses();
+		return getTokenValue().equals(")");
 	}
 
 	public boolean isNumber() {
@@ -58,26 +58,26 @@ public class Token {
 	}
 
 	public boolean isAdvancedOperator() {
-		return (getTokenValue().equals("cos") || getTokenValue().equals("sin") || getTokenValue().equals("abs") || getTokenValue().equals("tan"));
+		return (getTokenValue().equals("cos") ||
+				getTokenValue().equals("sin") ||
+				getTokenValue().equals("abs") ||
+				getTokenValue().equals("pow") ||
+				getTokenValue().equals("tan"));
 	}
 
 	public int operatorValue() {
 		int value = 0;
 
-		if (getTokenValue().equals("(") || getTokenValue().equals(")")) {
+		if (getTokenValue().equals("^")) {
 			value = 1;
 		}
 
-		if (getTokenValue().equals("^") || getTokenValue().equals("pow")) {
+		if (getTokenValue().equals("*") || getTokenValue().equals("/")) {
 			value = 2;
 		}
 
-		if (getTokenValue().equals("*") || getTokenValue().equals("/")) {
-			value = 3;
-		}
-
 		if (getTokenValue().equals("+") || getTokenValue().equals("-")) {
-			value = 4;
+			value = 3;
 		}
 
 		return value;
@@ -90,4 +90,17 @@ public class Token {
 		return tokenValue;
 	}
 
+	public double getNumericalValue(double x) throws Exception {
+		double value;
+		
+		if (isVariable()) {
+			value = x;
+		} else if (isNumber()) {
+			value = Double.parseDouble(tokenValue);
+		} else {
+			throw new Exception("Wrong type.");
+		}
+		
+		return value;
+	}
 }

@@ -9,6 +9,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 /**
  *
@@ -22,9 +24,10 @@ public class Handler {
 	public static int WINDOW_Y = 60;
 	
 	public static float PRECISION = 1f;
+	public static float SCALE = 60f;
 	
 	private static ArrayList<Point> points;
-	
+	private static String lastString = "";
 	
 	public static void init() {
 		new Window();
@@ -43,18 +46,26 @@ public class Handler {
 		return Color.getHSBColor((float)(h/360f),(float)(s/100f),(float)(b/100f));
 	}
 	
-	public static void graph(String text) {
+	public static boolean graph(String text) {
 		try {
-			System.out.println("Raw function: "+text);
-			ArrayList<Token> tokens = convertEquation(text);
-			System.out.println("Converted function: "+printList(tokens));
-			tokens = redact(tokens);
-			System.out.println("Redacted function: "+printList(tokens));
-			tokens = shuntingYard(tokens);
-			System.out.println("Ordered function: "+printList(tokens));
+//			System.out.println("Raw function: "+text);
+//			ArrayList<Token> tokens = convertEquation(text);
+//			System.out.println("Converted function: "+printList(tokens));
+//			tokens = redact(tokens);
+//			System.out.println("Redacted function: "+printList(tokens));
+//			tokens = shuntingYard(tokens);
+//			System.out.println("Ordered function: "+printList(tokens));
+//			solve(tokens);
+			if (!lastString.equals(text)) {
+				lastString = text;
+				eval(text);
+			}
+			
+			return true;
 		} catch(Exception e) {
-			System.out.println("Exception: "+e.getMessage());
+//			System.out.println("Exception: "+e.getMessage());
 //			System.out.println("Aiuda");
+			return false;
 		}
 	}
 	
@@ -64,6 +75,24 @@ public class Handler {
 			a = a + list.get(i) + " ";
 		}
 		return a;
+	}
+	
+	public static void eval(String eq) throws Exception {
+		ScriptEngineManager mgr = new ScriptEngineManager();
+		ScriptEngine engine = mgr.getEngineByName("JavaScript");
+		
+		eq = eq.replace("cos", "Math.cos");
+		eq = eq.replace("sin", "Math.sin");
+		eq = eq.replace("tan", "Math.sin");
+		eq = eq.replace("abs","Math.abs");
+		eq = eq.replace("pow","Math.pow");
+		points.clear();
+		for (int x = 0; x < 1000; x++) {
+			double fullX = (x-500)/100f;
+			double res = (double)engine.eval(eq.replace("x", ""+fullX).replace("random",""+Math.random()));
+			points.add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
+		}
+//		System.out.println(engine.eval(eq));
 	}
 	
 	public static ArrayList<Token> convertEquation(String eq) {
@@ -187,29 +216,35 @@ public class Handler {
 		
 		for (int i = 0; i < eq.size(); i++) {
 			Token token = eq.get(i);
-
+			System.out.println("");
 			if (token.isNumber() || token.isVariable()) {
+				System.out.println("add token to output");
 				outputQueue.add(token);
 			} else {
 				if (token.isOpenParentheses()) {
+					System.out.println("push token to stack");
 					operatorStack.add(token);
 				} else if (token.isClosedParentheses()) {
 					Token lastOperator = operatorStack.get(operatorStack.size()-1);
 					while(!lastOperator.isOpenParentheses()) {
+						System.out.println("pop stack to output");
 						outputQueue.add(lastOperator);
 						operatorStack.remove(operatorStack.size()-1);
 						lastOperator = operatorStack.get(operatorStack.size()-1);
 					}
+						System.out.println("pop stack to output");
 					operatorStack.remove(operatorStack.size()-1);
 				} else if (token.isOperator()) {
 					if (operatorStack.size()>0) {
 						Token lastOperator = operatorStack.get(operatorStack.size()-1);
 						while(lastOperator.isHigher(token) && operatorStack.size()>1) {
+							System.out.println("pop stack to output");
 							outputQueue.add(lastOperator);
 							operatorStack.remove(operatorStack.size()-1);
 							lastOperator = operatorStack.get(operatorStack.size()-1);
 						}
 					}
+						System.out.println("push token to stack");
 					operatorStack.add(token);
 				}
 			}
@@ -217,52 +252,74 @@ public class Handler {
 		
 		while (operatorStack.size()>0) {
 			Token lastOperator = operatorStack.get(operatorStack.size()-1);
-			outputQueue.add(lastOperator);
-//			System.out.println("popping "+lastOperator);
 			operatorStack.remove(operatorStack.size()-1);
+			
+			if (!lastOperator.isParentheses()) {
+				outputQueue.add(lastOperator);
+				System.out.println("pop stack to output");
+			}
 		}
 		
 		return outputQueue;
 	}
 	
-	public static void solve(ArrayList<Token> eq) {
+	public static void solve(ArrayList<Token> param) throws Exception {
 		
 		points.clear();
 		for (int rawX = 0; rawX < SCREEN_SIZE*PRECISION; rawX++) {
 			double x = (rawX-(SCREEN_SIZE*0.5f*PRECISION))/PRECISION;
+//double x = 2;
+			ArrayList<Token> eq = new ArrayList<Token>();
+			for (int i = 0; i < param.size(); i++) {
+				eq.add(new Token(param.get(i).getTokenValue()));
+			}
+			
 			
 			int j = 0;
-			double n1 = 0;
-			double n2 = 0;
+			int n1 = 0;
+			int n2 = 0;
 			
-			while (j<eq.size()) {
+			while (eq.size()>1) {
 				Token t = eq.get(j);
 				if (t.isNumber() || t.isVariable()) {
-//					System.out.println("Setting factor 2: ");
 					try {
-						n2 = eq.get(j).getNumericalValue(x);
+						n2 = j;
 					} catch (Exception e) { }
+//					System.out.println("Setting factor 2: "+eq.get(n2).getNumericalValue(x));
+					j++;
 				} else if (t.isOperator()) {
 //					System.out.println("Found an operator!");
-					try {
-						n1 = eq.get(j-2).getNumericalValue(x);
-					} catch (Exception e) { }
+					n1 = n2-1;
+//					System.out.println("Setting factor 1: "+eq.get(n1).getNumericalValue(x));
+					double r;
 					
 	//				APPLY OPERATOR
 					if (t.getTokenValue().equals("*")) {
-						n2 = n1*n2;
+						r = eq.get(n1).getNumericalValue(x)*eq.get(n2).getNumericalValue(x);
+//						System.out.println(n1+"*"+n2+"="+r);
 					} else if (t.getTokenValue().equals("/")) {
-						n2 = n1/n2;
+						r = eq.get(n1).getNumericalValue(x)/eq.get(n2).getNumericalValue(x);
+//						System.out.println(n1+"/"+n2+"="+r);
 					} else if (t.getTokenValue().equals("+")) {
-						n2 = n1+n2;
+						r = eq.get(n1).getNumericalValue(x)+eq.get(n2).getNumericalValue(x);
+//						System.out.println(n1+"+"+n2+"="+r);
 					} else if (t.getTokenValue().equals("-")) {
-						n2 = n1-n2;
+						r = eq.get(n1).getNumericalValue(x)-eq.get(n2).getNumericalValue(x);
+//						System.out.println(n1+"-"+n2+"="+r);
+					} else if (t.getTokenValue().equals("^")) {
+						r = Math.pow(eq.get(n1).getNumericalValue(x),eq.get(n2).getNumericalValue(x));
+//						System.out.println(n1+"^"+n2+"="+r);
+					} else {
+						throw new Exception ("Wrongful operator.");
 					}
+					eq.remove(j);
+					eq.get(n2).setTokenValue(""+r);
+					eq.remove(n1);
+					n2--;
+					j=0;
 				}
-
-				j++;
 			}
-			points.add(new Point(x+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-n2));
+			points.add(new Point(x+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-eq.get(n2).getNumericalValue(x)));
 		}
 	}
 	

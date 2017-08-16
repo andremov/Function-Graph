@@ -23,15 +23,15 @@ public class Token {
 	}
 
 	public boolean isHigher(Token comparison) {
-		return operatorValue() >= comparison.operatorValue();
+		return operatorValue() < comparison.operatorValue();
 	}
 
 	public boolean isOperator() {
-		return "x*/+-^()".contains(tokenValue);
+		return "*/+-^".contains(tokenValue);
 	}
 
 	public boolean isParentheses() {
-		return operatorValue() == 2;
+		return "()".contains(tokenValue);
 	}
 
 	public boolean isOpenParentheses() {
@@ -102,5 +102,12 @@ public class Token {
 		}
 		
 		return value;
+	}
+
+	/**
+	 * @param tokenValue the tokenValue to set
+	 */
+	public void setTokenValue(String tokenValue) {
+		this.tokenValue = tokenValue;
 	}
 }

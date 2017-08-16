@@ -6,9 +6,13 @@
 package graph;
 
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -37,14 +41,14 @@ public class Window extends JFrame {
 		inputField.addCaretListener(new CaretListener() {
 			@Override
 			public void caretUpdate(CaretEvent e) {
-				Handler.graph(inputField.getText());
+				inputField.setBackground(Handler.graph(inputField.getText())? Handler.color(123.4f, 23.6f, 88.2f) : Handler.color(6.4f, 63f, 99.6f));
 			}
 		});
 		add(inputField);
 		
 		
-        setVisible(true);
 		
+        setVisible(true);
         new Thread(s).start();
 	}
 	

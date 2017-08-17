@@ -24,11 +24,11 @@ public class Handler {
 	public static int WINDOW_Y = 60;
 	
 	public static float PRECISION = 1f;
-	public static float SCALE = SCREEN_SIZE/10f;
+	public static float SCALE = 100f;
 	
 	private static ArrayList<ArrayList<Point>> points;
         private static Color[] colors = {Color.red,Color.green,Color.BLUE,Color.ORANGE,Color.PINK};
-//	private static String lastString = "";
+	private static String lastString = "";
 	
 	public static void init() {
 		new Window();
@@ -58,8 +58,8 @@ public class Handler {
 //			System.out.println("Ordered function: "+printList(tokens));
 //			solve(tokens);
 //			if (!lastString.equals(text)) {
-//				lastString = text;
-				eval(text);
+                            eval(doReplacements(text));
+                            lastString = doReplacements(text);
 //			}
 			
 			return true;
@@ -77,12 +77,9 @@ public class Handler {
 		}
 		return a;
 	}
-	
-	public static void eval(String eq) throws Exception {
-		ScriptEngineManager mgr = new ScriptEngineManager();
-		ScriptEngine engine = mgr.getEngineByName("JavaScript");
-		
-		
+        
+        public static String doReplacements(String eq) {
+            
 		eq = eq.replace("sec", "1/cos");
 		eq = eq.replace("cot","1/tan");
 		eq = eq.replace("csc","1/sin");
@@ -106,17 +103,43 @@ public class Handler {
 		
                 eq = eq.replace("pi","Math.PI");
 		eq = eq.replace("euler","Math.E");
+                
+                return eq;
+        }
+	
+	public static void eval(String eq) throws Exception {
+		ScriptEngineManager mgr = new ScriptEngineManager();
+		ScriptEngine engine = mgr.getEngineByName("JavaScript");
 		
-		points.clear();
+                int max = (int)(1000*(SCALE/10));
 		for (int e = 0; e < eq.split(";").length; e++) {
-                        points.add(new ArrayList<Point>());
-			String thisEq=eq.split(";")[e];
-			for (int x = 0; x < 1000; x++) {
-				double fullX = (x-500)/100f;
-				double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
-				points.get(e).add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
-			}
+                        boolean repaint = true;
+                        try {
+                            repaint = !eq.split(";")[e].equals(lastString.split(";")[e]);
+                        } catch (Exception exc1) {
+                            
+                        }
+                        if (repaint) {
+                            System.out.println("Calculating function "+(e+1)+"...");
+                            try {
+                                points.get(e).clear();
+                            } catch(Exception exc2) {
+                                points.add(new ArrayList<Point>());
+                            }
+                            
+                            String thisEq=eq.split(";")[e];
+                            for (int x = 0; x < max; x++) {
+                                    double fullX = (x-(max/2))/100f;
+                                    double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
+                                    points.get(e).add(new Point((fullX*(SCREEN_SIZE/SCALE))+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*(SCREEN_SIZE/SCALE))));
+    //                                System.out.println("Para funcion "+e+". ("+fullX+","+res+")");
+                            }
+                        }
 		}
+                
+                for (int e = eq.split(";").length; e < lastString.split(";").length; e++) {
+                    points.remove(e);
+                }
 //		System.out.println(engine.eval(eq));
 	}
 	

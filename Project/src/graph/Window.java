@@ -26,6 +26,8 @@ import javax.swing.event.CaretListener;
  */
 public class Window extends JFrame {
 	
+        Screen s;
+    
 	public Window() {
         setLayout(null);
         setSize(Handler.SCREEN_SIZE+Handler.EXTRA_X,Handler.SCREEN_SIZE+Handler.EXTRA_Y+Handler.WINDOW_Y);
@@ -34,7 +36,7 @@ public class Window extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("Graficador de Funciones");
 		
-		Screen s = new Screen(Handler.SCREEN_SIZE,Handler.SCREEN_SIZE);
+		s = new Screen(Handler.SCREEN_SIZE,Handler.SCREEN_SIZE);
 		add(s);
 		
 		JTextField inputField = new JTextField();
@@ -51,7 +53,10 @@ public class Window extends JFrame {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                                         s.paint(true);
 					inputField.setBackground(Handler.graph(inputField.getText())? Handler.color(123.4f, 23.6f, 88.2f) : Handler.color(6.4f, 63f, 99.6f));
+//                                        new Thread(s).
+                                        s.paint(false);
 				}
 			}
 		
@@ -61,7 +66,7 @@ public class Window extends JFrame {
 		
 		
         setVisible(true);
-        new Thread(s).start();
+//        new Thread(s).start();
 	}
 	
 	private class Screen extends Canvas implements Runnable {
@@ -74,6 +79,24 @@ public class Window extends JFrame {
 			setSize(width,height);
 			setLocation(1,1);
 		}
+                
+                public void paint(boolean thinking) {
+				Graphics g = getGraphics();
+
+                                
+				try {
+					g.drawImage(Handler.getGraph(), 0, 0, this);
+				} catch (Exception e) {
+//					System.out.println(e.getMessage());
+				}
+                                
+                                if (thinking) {
+                                    g.setFont(new Font("Arial",Font.BOLD,30));
+                                 g.drawString("Calculating...", 215, 310);
+                                }
+
+//				getBufferStrategy().show();
+                }
 
 		@Override
 		public void run() {

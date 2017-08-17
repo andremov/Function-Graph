@@ -9,8 +9,11 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import javafx.scene.input.KeyCode;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -38,11 +41,20 @@ public class Window extends JFrame {
 		inputField.setSize(Handler.SCREEN_SIZE+1, Handler.WINDOW_Y);
 		inputField.setLocation(1, Handler.SCREEN_SIZE+2);
 		inputField.setFont(new Font("Arial",Font.BOLD,55));
-		inputField.addCaretListener(new CaretListener() {
+		inputField.addKeyListener(new KeyListener() {
 			@Override
-			public void caretUpdate(CaretEvent e) {
-				inputField.setBackground(Handler.graph(inputField.getText())? Handler.color(123.4f, 23.6f, 88.2f) : Handler.color(6.4f, 63f, 99.6f));
+			public void keyTyped(KeyEvent e) { }
+
+			@Override
+			public void keyPressed(KeyEvent e) { }
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					inputField.setBackground(Handler.graph(inputField.getText())? Handler.color(123.4f, 23.6f, 88.2f) : Handler.color(6.4f, 63f, 99.6f));
+				}
 			}
+		
 		});
 		add(inputField);
 		

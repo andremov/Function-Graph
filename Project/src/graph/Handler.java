@@ -24,10 +24,10 @@ public class Handler {
 	public static int WINDOW_Y = 60;
 	
 	public static float PRECISION = 1f;
-	public static float SCALE = 60f;
+	public static float SCALE = SCREEN_SIZE/10f;
 	
 	private static ArrayList<Point> points;
-	private static String lastString = "";
+//	private static String lastString = "";
 	
 	public static void init() {
 		new Window();
@@ -56,10 +56,10 @@ public class Handler {
 //			tokens = shuntingYard(tokens);
 //			System.out.println("Ordered function: "+printList(tokens));
 //			solve(tokens);
-			if (!lastString.equals(text)) {
-				lastString = text;
+//			if (!lastString.equals(text)) {
+//				lastString = text;
 				eval(text);
-			}
+//			}
 			
 			return true;
 		} catch(Exception e) {
@@ -81,16 +81,38 @@ public class Handler {
 		ScriptEngineManager mgr = new ScriptEngineManager();
 		ScriptEngine engine = mgr.getEngineByName("JavaScript");
 		
+		
+		eq = eq.replace("sec", "1/cos");
+		eq = eq.replace("cot","1/tan");
+		eq = eq.replace("csc","1/sin");
+		
 		eq = eq.replace("cos", "Math.cos");
 		eq = eq.replace("sin", "Math.sin");
 		eq = eq.replace("tan", "Math.sin");
-		eq = eq.replace("abs","Math.abs");
-		eq = eq.replace("pow","Math.pow");
+		
+		eq = eq.replace("abs", "Math.abs");
+		
+		eq = eq.replace("pow", "Math.pow");
+		eq = eq.replace("sqrt", "Math.sqrt");
+		
+		eq = eq.replace("ln", "log");
+		eq = eq.replace("log", "Math.log");
+		
+		eq = eq.replace("ceiling","ceil");
+		eq = eq.replace("ceil", "Math.ceil");
+		eq = eq.replace("flr","floor");
+		eq = eq.replace("floor","Math.floor");
+		
+//		eq = eq.replace("euler","Math.exp()");
+		
 		points.clear();
-		for (int x = 0; x < 1000; x++) {
-			double fullX = (x-500)/100f;
-			double res = (double)engine.eval(eq.replace("x", ""+fullX).replace("random",""+Math.random()));
-			points.add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
+		for (int e = 0; e < eq.split(";").length; e++) {
+			String thisEq=eq.split(";")[e];
+			for (int x = 0; x < 1000; x++) {
+				double fullX = (x-500)/100f;
+				double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
+				points.add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
+			}
 		}
 //		System.out.println(engine.eval(eq));
 	}

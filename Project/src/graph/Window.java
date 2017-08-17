@@ -91,8 +91,11 @@ public class Window extends JFrame {
 				}
                                 
                                 if (thinking) {
+									g.setColor(Color.black);
+									g.fillRect(200,280,220,40);
                                     g.setFont(new Font("Arial",Font.BOLD,30));
-                                 g.drawString("Calculating...", 215, 310);
+									g.setColor(Color.white);
+									g.drawString("Calculating...", 215, 310);
                                 }
 
 //				getBufferStrategy().show();

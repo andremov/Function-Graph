@@ -24,10 +24,10 @@ public class Handler {
 	public static int WINDOW_Y = 60;
 	
 	public static float PRECISION = 1f;
-	public static float SCALE = 100f;
+	public static float SCALE = 10f;
 	
 	private static ArrayList<ArrayList<Point>> points;
-        private static Color[] colors = {Color.red,Color.green,Color.BLUE,Color.ORANGE,Color.PINK};
+        private static Color[] colors = {Color.red,Color.MAGENTA,Color.BLUE,Color.ORANGE,Color.PINK};
 	private static String lastString = "";
 	
 	public static void init() {
@@ -79,7 +79,8 @@ public class Handler {
 	}
         
         public static String doReplacements(String eq) {
-            
+           
+		eq = eq.toLowerCase();
 		eq = eq.replace("sec", "1/cos");
 		eq = eq.replace("cot","1/tan");
 		eq = eq.replace("csc","1/sin");
@@ -138,7 +139,7 @@ public class Handler {
 		}
                 
                 for (int e = eq.split(";").length; e < lastString.split(";").length; e++) {
-                    points.remove(e);
+                    points.remove(eq.split(";").length);
                 }
 //		System.out.println(engine.eval(eq));
 	}

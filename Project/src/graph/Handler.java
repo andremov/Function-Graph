@@ -26,7 +26,8 @@ public class Handler {
 	public static float PRECISION = 1f;
 	public static float SCALE = SCREEN_SIZE/10f;
 	
-	private static ArrayList<Point> points;
+	private static ArrayList<ArrayList<Point>> points;
+        private static Color[] colors = {Color.red,Color.green,Color.BLUE,Color.ORANGE,Color.PINK};
 //	private static String lastString = "";
 	
 	public static void init() {
@@ -103,15 +104,17 @@ public class Handler {
 		eq = eq.replace("flr","floor");
 		eq = eq.replace("floor","Math.floor");
 		
-//		eq = eq.replace("euler","Math.exp()");
+                eq = eq.replace("pi","Math.PI");
+		eq = eq.replace("euler","Math.E");
 		
 		points.clear();
 		for (int e = 0; e < eq.split(";").length; e++) {
+                        points.add(new ArrayList<Point>());
 			String thisEq=eq.split(";")[e];
 			for (int x = 0; x < 1000; x++) {
 				double fullX = (x-500)/100f;
 				double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
-				points.add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
+				points.get(e).add(new Point((fullX*SCALE)+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*SCALE)));
 			}
 		}
 //		System.out.println(engine.eval(eq));
@@ -341,7 +344,7 @@ public class Handler {
 					j=0;
 				}
 			}
-			points.add(new Point(x+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-eq.get(n2).getNumericalValue(x)));
+//			points.add(new Point(x+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-eq.get(n2).getNumericalValue(x)));
 		}
 	}
 	
@@ -364,7 +367,9 @@ public class Handler {
 		g.drawLine(0, size-1, size-1, size-1);
 		
 		for (int i = 0; i < points.size(); i++) {
-			g.drawImage(points.get(i).getImage(), (int)points.get(i).getX(), (int)points.get(i).getY(), null);
+                    for (int j = 0; j < points.get(i).size(); j++) {
+                        g.drawImage(points.get(i).get(j).getImage(colors[i%colors.length]), (int)points.get(i).get(j).getX(), (int)points.get(i).get(j).getY(), null);
+                    }
 		}
 		
 		return graph;

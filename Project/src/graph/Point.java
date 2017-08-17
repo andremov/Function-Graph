@@ -23,11 +23,11 @@ public class Point {
 		this.y = y;
 	}
 	
-	public BufferedImage getImage() {
+	public BufferedImage getImage(Color c) {
 		BufferedImage img = new BufferedImage(2,2,BufferedImage.TYPE_INT_ARGB);
 		Graphics g = img.getGraphics();
 		
-		g.setColor(Color.red);
+		g.setColor(c);
 		g.fillRect(0,0,2,2);
 		
 		return img;

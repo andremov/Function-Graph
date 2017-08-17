@@ -27,7 +27,10 @@ public class Handler {
 	public static float SCALE = 10f;
 	
 	private static ArrayList<ArrayList<Point>> points;
-        private static Color[] colors = {Color.red,Color.MAGENTA,Color.BLUE,Color.ORANGE,Color.PINK};
+        private static Color[] colors = { color(0, 100, 100), color(0, 100, 76.9), color(0, 100, 53.7), 
+			color(240, 100, 100), color(240, 100, 76.9), color(240, 100, 53.7), color(300, 100, 100), 
+			color(300, 100, 76.9), color(300, 100, 53.7)
+		};
 	private static String lastString = "";
 	
 	public static void init() {
@@ -65,7 +68,6 @@ public class Handler {
 			return true;
 		} catch(Exception e) {
 //			System.out.println("Exception: "+e.getMessage());
-//			System.out.println("Aiuda");
 			return false;
 		}
 	}
@@ -78,70 +80,69 @@ public class Handler {
 		return a;
 	}
         
-        public static String doReplacements(String eq) {
-           
+	public static String doReplacements(String eq) {
+
 		eq = eq.toLowerCase();
 		eq = eq.replace("sec", "1/cos");
 		eq = eq.replace("cot","1/tan");
 		eq = eq.replace("csc","1/sin");
-		
+
 		eq = eq.replace("cos", "Math.cos");
 		eq = eq.replace("sin", "Math.sin");
 		eq = eq.replace("tan", "Math.sin");
-		
+
 		eq = eq.replace("abs", "Math.abs");
-		
+
 		eq = eq.replace("pow", "Math.pow");
 		eq = eq.replace("sqrt", "Math.sqrt");
-		
+
 		eq = eq.replace("ln", "log");
 		eq = eq.replace("log", "Math.log");
-		
+
 		eq = eq.replace("ceiling","ceil");
 		eq = eq.replace("ceil", "Math.ceil");
 		eq = eq.replace("flr","floor");
 		eq = eq.replace("floor","Math.floor");
-		
-                eq = eq.replace("pi","Math.PI");
+
+		eq = eq.replace("pi","Math.PI");
 		eq = eq.replace("euler","Math.E");
-                
-                return eq;
-        }
+
+		return eq;
+	}
 	
 	public static void eval(String eq) throws Exception {
 		ScriptEngineManager mgr = new ScriptEngineManager();
 		ScriptEngine engine = mgr.getEngineByName("JavaScript");
 		
-                int max = (int)(1000*(SCALE/10));
+		int max = (int)(1000*(SCALE/10));
 		for (int e = 0; e < eq.split(";").length; e++) {
-                        boolean repaint = true;
-                        try {
-                            repaint = !eq.split(";")[e].equals(lastString.split(";")[e]);
-                        } catch (Exception exc1) {
-                            
-                        }
-                        if (repaint) {
-                            System.out.println("Calculating function "+(e+1)+"...");
-                            try {
-                                points.get(e).clear();
-                            } catch(Exception exc2) {
-                                points.add(new ArrayList<Point>());
-                            }
-                            
-                            String thisEq=eq.split(";")[e];
-                            for (int x = 0; x < max; x++) {
-                                    double fullX = (x-(max/2))/100f;
-                                    double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
-                                    points.get(e).add(new Point((fullX*(SCREEN_SIZE/SCALE))+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*(SCREEN_SIZE/SCALE))));
-    //                                System.out.println("Para funcion "+e+". ("+fullX+","+res+")");
-                            }
-                        }
+			boolean repaint = true;
+			try {
+				repaint = !eq.split(";")[e].equals(lastString.split(";")[e]);
+			} catch (Exception exc1) {
+
+			}
+			if (repaint) {
+				System.out.println("Calculating function "+(e+1)+"...");
+				
+				try {
+					points.get(e).clear();
+				} catch(Exception exc2) {
+					points.add(new ArrayList<Point>());
+				}
+
+				String thisEq=eq.split(";")[e];
+				for (int x = 0; x < max; x++) {
+					double fullX = (x-(max/2))/100f;
+					double res = (double)engine.eval(thisEq.replace("x", ""+fullX).replace("random",""+Math.random()));
+					points.get(e).add(new Point((fullX*(SCREEN_SIZE/SCALE))+(SCREEN_SIZE/2),(SCREEN_SIZE/2)-(res*(SCREEN_SIZE/SCALE))));
+				}
+			}
 		}
                 
-                for (int e = eq.split(";").length; e < lastString.split(";").length; e++) {
-                    points.remove(eq.split(";").length);
-                }
-//		System.out.println(engine.eval(eq));
+		for (int e = eq.split(";").length; e < lastString.split(";").length; e++) {
+			points.remove(eq.split(";").length);
+		}
 	}
 	
 	public static ArrayList<Token> convertEquation(String eq) {
@@ -391,9 +392,9 @@ public class Handler {
 		g.drawLine(0, size-1, size-1, size-1);
 		
 		for (int i = 0; i < points.size(); i++) {
-                    for (int j = 0; j < points.get(i).size(); j++) {
-                        g.drawImage(points.get(i).get(j).getImage(colors[i%colors.length]), (int)points.get(i).get(j).getX(), (int)points.get(i).get(j).getY(), null);
-                    }
+			for (int j = 0; j < points.get(i).size(); j++) {
+				g.drawImage(points.get(i).get(j).getImage(colors[i%colors.length]), (int)points.get(i).get(j).getX(), (int)points.get(i).get(j).getY(), null);
+			}
 		}
 		
 		return graph;

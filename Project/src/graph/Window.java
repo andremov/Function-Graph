@@ -26,7 +26,7 @@ import javax.swing.event.CaretListener;
  */
 public class Window extends JFrame {
 	
-        Screen s;
+	Screen s;
     
 	public Window() {
         setLayout(null);
@@ -53,23 +53,19 @@ public class Window extends JFrame {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                                         s.paint(true);
+                    s.paint(true);
 					inputField.setBackground(Handler.graph(inputField.getText())? Handler.color(123.4f, 23.6f, 88.2f) : Handler.color(6.4f, 63f, 99.6f));
-//                                        new Thread(s).
-                                        s.paint(false);
+					s.paint(false);
 				}
 			}
 		
 		});
 		add(inputField);
 		
-		
-		
         setVisible(true);
-//        new Thread(s).start();
 	}
 	
-	private class Screen extends Canvas implements Runnable {
+	private class Screen extends Canvas {
 
 
 		/**
@@ -80,47 +76,23 @@ public class Window extends JFrame {
 			setLocation(1,1);
 		}
                 
-                public void paint(boolean thinking) {
-				Graphics g = getGraphics();
+		public void paint(boolean thinking) {
+			Graphics g = getGraphics();
 
-                                
-				try {
-					g.drawImage(Handler.getGraph(), 0, 0, this);
-				} catch (Exception e) {
-//					System.out.println(e.getMessage());
-				}
-                                
-                                if (thinking) {
-									g.setColor(Color.black);
-									g.fillRect(200,280,220,40);
-                                    g.setFont(new Font("Arial",Font.BOLD,30));
-									g.setColor(Color.white);
-									g.drawString("Calculating...", 215, 310);
-                                }
+			try {
+				g.drawImage(Handler.getGraph(), 0, 0, this);
+			} catch (Exception e) { }
 
-//				getBufferStrategy().show();
-                }
-
-		@Override
-		public void run() {
-			createBufferStrategy(2);
-			while (true) {
-				Graphics g = getBufferStrategy().getDrawGraphics();
-
-				try {
-					g.drawImage(Handler.getGraph(), 0, 0, this);
-				} catch (Exception e) {
-//					System.out.println(e.getMessage());
-				}
-
-				getBufferStrategy().show();
-
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException ex) {
-				}
+			if (thinking) {
+				g.setColor(Color.black);
+				g.fillRect(200,280,220,40);
+				g.setFont(new Font("Arial",Font.BOLD,30));
+				g.setColor(Color.white);
+				g.drawString("Calculating...", 215, 310);
 			}
+
 		}
+
 
 	}
 }

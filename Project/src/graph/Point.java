@@ -15,36 +15,36 @@ import java.awt.image.BufferedImage;
  */
 public class Point {
 	
-	private double x;
-	private double y;
+    private double x;
+    private double y;
 
-	public Point(double x, double y) {
-		this.x = x;
-		this.y = y;
-	}
-	
-	public BufferedImage getImage(Color c) {
-		BufferedImage img = new BufferedImage(2,2,BufferedImage.TYPE_INT_ARGB);
-		Graphics g = img.getGraphics();
-		
-		g.setColor(c);
-		g.fillRect(0,0,2,2);
-		
-		return img;
-	}
+    public Point(double x, double y) {
+	this.x = x;
+	this.y = y;
+    }
 
-	/**
-	 * @return the x
-	 */
-	public double getX() {
-		return x-1;
-	}
+    public BufferedImage getImage(Color c) {
+	BufferedImage img = new BufferedImage(2,2,BufferedImage.TYPE_INT_ARGB);
+	Graphics g = img.getGraphics();
 
-	/**
-	 * @return the y
-	 */
-	public double getY() {
-		return y-1;
-	}
+	g.setColor(c);
+	g.fillRect(0,0,2,2);
+
+	return img;
+    }
+
+    /**
+     * @return the x
+     */
+    public double getX() {
+	return x-1;
+    }
+
+    /**
+     * @return the y
+     */
+    public double getY() {
+	return y-1;
+    }
 	
 }
